@@ -119,4 +119,4 @@ Currently available dynamics types:
 
 'Rossler' - the Rossler system $dx/dt = -y-z$, $dy/dt = x+ay$, $dz/dt = b+z(x-c)$. The dynamics_params should be listed as [a,b,c]
 
-'Lorenz' - The Lorenz system $dx/dt = \sigma*(y-z)$
+'Lorenz' - The Lorenz system $dx/dt = \sigma(y-z)$, $dy/dt = x(\rho -z) -y$, $dz/dt = xy-\beta z$. The parameters should be listed as [$\sigma,\rho,\beta$]
