@@ -117,14 +117,14 @@ coupling_strength - (default 1) the coupling_strength (k from the equation above
 
 Currently available ISOLATED dynamics types:
 
-'Rossler' - the Rossler system $dx/dt = -y-z$, $dy/dt = x+ay$, $dz/dt = b+z(x-c)$. The dynamics_params should be listed as $[a,b,c]$
+'Rossler' - the Rossler system $dx/dt = -y-z$, $dy/dt = x+ay$, $dz/dt = b+z(x-c)$. The dynamics_params should be listed as $[a,b,c]$. One suggested example set $[0.2,0.2,7]$
 
-'Lorenz' - The Lorenz system $dx/dt = \sigma(y-z)$, $dy/dt = x(\rho -z) -y$, $dz/dt = xy-\beta z$. The parameters should be listed as $[\sigma,\rho,\beta]$
+'Lorenz' - The Lorenz system $dx/dt = \sigma(y-z)$, $dy/dt = x(\rho -z) -y$, $dz/dt = xy-\beta z$. The parameters should be listed as $[\sigma,\rho,\beta]$. One suggested example set $[10,28,8/3]$
 
-'VanDerPol' - The VanDer Pol system, $dx/dt = y, dy/dt = \mu(1-x^2)y-x$. The parameters should be listed as $[\mu]$
+'VanDerPol' - The VanDer Pol system, $dx/dt = y, dy/dt = \mu(1-x^2)y-x$. The parameters should be listed as $[\mu]$. Suggested example value is $[1.5]$.
 
-'Brusselator' - The Brusselator system, $dx/dt = 1-(a+1)x+bx^2y, dy/dt = ax-bx^2y$. The parameters should be listed as $[a,b]$
+'Brusselator' - The Brusselator system, $dx/dt = 1-(a+1)x+bx^2y, dy/dt = ax-bx^2y$. The parameters should be listed as $[a,b]$. Suggested example of values $[2.5,1.12]$.
 
-'Wienbridge' - The Wien bridge system, $dx/dt = -x+y-(ay-by^3+cy^5), dy/dt = -(-x+y-(ay-by^3+cy^5))-y$. The parameters should be listed as $[a,b,c]$
+'Wienbridge' - The Wien bridge system, $dx/dt = -x+y-(ay-by^3+cy^5), dy/dt = -(-x+y-(ay-by^3+cy^5))-y$. The parameters should be listed as $[a,b,c]$. Suggested example of values $[3.234, 2.195, 0.666]$
 
 
