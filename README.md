@@ -115,12 +115,16 @@ coupling_matrix - (default None) the coupling matrix which details which compone
 coupling_strength - (default 1) the coupling_strength (k from the equation above).
 
 
-Currently available dynamics types:
+Currently available ISOLATED dynamics types:
 
-'Rossler' - the Rossler system $dx/dt = -y-z$, $dy/dt = x+ay$, $dz/dt = b+z(x-c)$. The dynamics_params should be listed as [a,b,c]
+'Rossler' - the Rossler system $dx/dt = -y-z$, $dy/dt = x+ay$, $dz/dt = b+z(x-c)$. The dynamics_params should be listed as $[a,b,c]$
 
 'Lorenz' - The Lorenz system $dx/dt = \sigma(y-z)$, $dy/dt = x(\rho -z) -y$, $dz/dt = xy-\beta z$. The parameters should be listed as $[\sigma,\rho,\beta]$
 
 'VanDerPol' - The VanDer Pol system, $dx/dt = y, dy/dt = \mu(1-x^2)y-x$. The parameters should be listed as $[\mu]$
 
-'Brusselator' - 
+'Brusselator' - The Brusselator system, $dx/dt = 1-(a+1)x+bx^2y, dy/dt = ax-bx^2y$. The parameters should be listed as $[a,b]$
+
+'Wienbridge' - The Wien bridge system, $dx/dt = -x+y-(ay-by^3+cy^5), dy/dt = -(-x+y-(ay-by^3+cy^5))-y$. The parameters should be listed as $[a,b,c]$
+
+
