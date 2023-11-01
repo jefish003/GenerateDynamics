@@ -46,6 +46,7 @@ init_cond_params - (default [0,1]) an iterable containing the parameters for the
 init_cond_offset - (default 0) a constant offset to be added to each value of the initial condition, this is a way to create a shifted distribution if desired
 
 
+
 The options for init_cond_type are as follows:
 
 'normal' - the two parameter normal distribution. The first parameter is the mean and the second is the standard deviation
@@ -80,3 +81,35 @@ The options for init_cond_type are as follows:
 
 'weibull' - the one parameter Weibull distribution. The parameter is the shape parameter.
 
+
+Beyond just linear dynamics, there is also an option for nonlinear dynamics on networks, in this case assuming identical isolated dynamics so the model for the function continuous_time_nonlinear_dynamics  is dx_i/dt = f(x_i) + k*sum_i(A_ij*h(x_i,x_j)), where A is the adjacency matrix, and h is assumed to be a matrix that couples different components. 
+
+It can simply be called in the following manner, since all arguments have defaults.
+```
+#G is a networkx Graph or DiGraph
+x,t = ld.continuous_time_nonlinear_dynamics(G=G)
+```
+
+The options for continuous_time_nonlinear_dynamics are as follows:
+
+G - a networkx Graph or DiGraph (default None)
+
+tmax - (default 100) The maximum time to integrate to.
+
+timestep - (default 0.1) The integration timestep
+
+init_cond_type - (default 'normal') the distribution type to draw the initial condition from
+
+init_cond - (default None) if this is not none, then this initial condition will be used, overriding init_cond_type (see above for options)
+
+init_cond_params - (default [0,1]) an iterable (must be an iterable) containing the parameters for the distribution in init_cond_type
+
+init_cond_offset - (default 0) the offset to shift the distribution of the initial condition
+
+dynamics_type - (default 'Rossler') the type of dynamics to run on the network. See below for the available options
+
+dynamics_params - (default [0.2,0.2,7]) an iterable containing the parameters for the distribution. For more explanation of the number of parameters needed see below
+
+coupling_matrix - (default None) the coupling matrix which details which components to couple through. The internal default is coupling through the first component. So inputting the correct size coupling matrix can alter this coupling structure.
+
+coupling_strength - (default 1) the coupling_strength (k from the equation above).
