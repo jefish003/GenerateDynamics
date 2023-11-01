@@ -113,3 +113,10 @@ dynamics_params - (default [0.2,0.2,7]) an iterable containing the parameters fo
 coupling_matrix - (default None) the coupling matrix which details which components to couple through. The internal default is coupling through the first component. So inputting the correct size coupling matrix can alter this coupling structure.
 
 coupling_strength - (default 1) the coupling_strength (k from the equation above).
+
+
+Currently available dynamics types:
+
+'Rossler' - the Rossler system $dx/dt = -y-z$, $dy/dt = x+ay$, $dz/dt = b+z(x-c)$. The dynamics_params should be listed as [a,b,c]
+
+'Lorenz' - The Lorenz system $dx/dt = \sigma*(y-z)$
