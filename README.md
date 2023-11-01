@@ -23,10 +23,10 @@ ld.convert_adjacency(A)
 ```
 These methods will internally store the graph that has been set.
 Alternatively, we can set the graph during a call to generate the dynamics, for instance
-'''
+```
 #G is a networkx Graph or DiGraph
 x,t = ld.continuous_time_linear_dynamics(G=G)
-'''
+```
 will generate continuous time linear consensus dynamics, using the graph Laplacian (i.e dx/dt = -Lx). NOTE: if a graph has been stored, but the option above is used (G=G), then the internally stored graph will be overwritten by this new graph G.
 The options for continuous_time_linear_dynamics are as follows:
 G - the graph you want to run dynamics on top of (default None, this is assumed to have already been set by one of the methods above)
