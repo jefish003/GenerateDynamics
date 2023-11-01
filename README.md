@@ -9,5 +9,5 @@ A main class is the laplacian_dynamics class. This can be used for diffusive cou
 ```
 from GenerateDynamics import laplacian_dynamics
 ld = laplacian_dynamics()
-'''
+```
 
