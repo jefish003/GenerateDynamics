@@ -4,7 +4,7 @@ A package for generating some common dynamics on networks, as well as some types
 Getting started: Packages you will need: numpy, networkx, copy, scipy
 
 Introduction to the methods:
-A main class is the laplacian_dynamics class. This can be used for diffusive coupling on top of the network. To get started we will first import the package and initialize laplacian_dynamics
+The main classes are the laplacian_dynamics class (to be discussed first), the divergences class, the master_stability class and the laplacian_pseudospectra class. This can be used for diffusive coupling on top of the network. To get started we will first import the package and initialize laplacian_dynamics
 
 ```
 from GenerateDynamics import laplacian_dynamics
@@ -98,6 +98,8 @@ tmax - (default 100) The maximum time to integrate to.
 
 timestep - (default 0.1) The integration timestep
 
+method - (default 'random') The type of method for generating initial conditions. If it is set to 'random' then the initial conditions will simply be drawn randomly from the distribution specified by init_cond_type. If method = 'normalized' then the initial condition will be normalized, and multiplied by scale (see below)
+
 init_cond_type - (default 'normal') the distribution type to draw the initial condition from
 
 init_cond - (default None) if this is not none, then this initial condition will be used, overriding init_cond_type (see above for options)
@@ -105,6 +107,10 @@ init_cond - (default None) if this is not none, then this initial condition will
 init_cond_params - (default [0,1]) an iterable (must be an iterable) containing the parameters for the distribution in init_cond_type
 
 init_cond_offset - (default 0) the offset to shift the distribution of the initial condition
+
+p_norm - (default 2) if method = 'normalized' then this is the norm to normalize the initial condition by. Only p-norms are currently supported (np.inf for the infinity norm)
+
+scale - (default 1) if method = 'normalized' then this is how much to scale the initial condition by.
 
 dynamics_type - (default 'Rossler') the type of dynamics to run on the network. See below for the available options
 
