@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Wed Sep  4 14:43:40 2024
+
+@author: jefis
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Thu Oct 26 13:06:30 2023
 
 @author: jefis
@@ -13,6 +20,297 @@ from matplotlib import pyplot as plt
 from scipy.linalg import schur,expm
 from scipy.spatial.distance import pdist
 from tqdm import tqdm
+
+
+class non_laplacian_dynamics:
+    def __init__(self):
+        self.graph = None
+        self.init_cond = None
+    def set_graph(self,G):
+        """A function to set the graph. Note it is assumed to be a networkx graph...
+        
+        Inputs: G - a networkx graph.
+        """
+        self.graph = G
+    
+    def set_init_cond(self,init_cond):
+        """For setting a particular initial condition"""
+        self.init_cond=init_cond
+
+    def return_graph(self):
+        return self.graph
+    
+    def return_init_cond(self):
+        return self.init_cond
+
+    def convert_adjacency(self,A,Type='DiGraph'):
+        """To convert an adacency matrix to a networkx graph and store the graph
+        internally
+        
+        Inputs: A - (n x n) Adjacency matrix in numpy array form. Note must be acceptable 
+                    form for networkx to convert to a graph
+                Type - either 'Graph' or 'DiGraph' depending on the type of graph
+        
+        Outputs: 
+                graph - The networkx graph. 
+        """
+        
+        if Type == 'DiGraph':
+            self.graph = nx.DiGraph(A)
+        
+        elif Type == 'Graph':
+            self.graph = nx.Graph(A)
+        
+        else:
+            raise ValueError("Only Type = 'DiGraph' or Type = 'Graph' is allowed")
+        
+        return self.graph
+    
+    def mondal_scm(self,x,t,L,params):
+        """A coupled supply chain network model
+        
+           Inputs:  x - a (3n x 1) vector containing the 3 state variables for each oscillator
+                    t - the time
+                    L - the graph Laplacian
+                    params - either a list with 6 entries or a (6n x 1) array ordered as follows
+                             [m,n,a,r,p,k].
+          Outputs: arr - a (3n x 1) array pushed forward by the integration time unit
+          
+          
+          NOTE: This model comes from the paper
+          
+          'A new supply chain model and its synchronization behaviour'
+          by: Sayantani Mondal
+          
+          Suggested parameters m = 10, n = 9, a = 0, r = 28, p = 1, k = 5/3
+        """
+        if len(params) == 6:
+            m,n,a,r,p,k = params
+            #do stuff here
+            lenx = len(x)
+            dx = deepcopy(x)            
+            X = x[0:lenx:3]
+            Y = x[1:lenx:3]
+            Z = x[2:lenx:3]
+            Div = 1+a*Y
+            Div2= np.dot(np.matrix(Div).T,np.matrix(Div))
+            np.fill_diagonal(Div2,1)
+            XZ = X*Z
+            XY = X*Y
+            LX = np.dot(L/Div2,X)
+            LY = np.dot(L/Div2,Y)
+            dx[0:lenx:3] = m*Y/Div -n*X -m*LY
+            dx[1:lenx:3] = r*X - p*Y/Div - XZ +np.dot(L,XZ) - r*np.dot(L,X)+(p*LY)-np.dot(L,Y)
+            dx[2:lenx:3] = X*Y - k*Z -np.dot(L,XY)
+        
+        else:
+            #THIS NEEDS TO BE FINISHED...
+            lenparams = len(params)
+            m = params[0:lenparams:6]
+            n = params[1:lenparams:6]
+            a = params[2:lenparams:6]
+            r = params[3:lenparams:6]
+            p = params[4:lenparams:6]
+            k = params[5:lenparams:6]
+            #
+            lenx = len(x)
+            dx = deepcopy(x)            
+            X = x[0:lenx:3]
+            Y = x[1:lenx:3]
+            Z = x[2:lenx:3]
+            Div = 1+a*Y
+            Div2= np.dot(np.matrix(Div).T,np.matrix(Div))
+            np.fill_diagonal(Div2,1)
+            XZ = X*Z
+            XY = X*Y
+            Xshape = X.shape
+            LX = np.asarray(np.dot(L/Div2,X)).reshape(Xshape)
+            LY = np.asarray(np.dot(L/Div2,Y)).reshape(Xshape)
+            
+            #print(Xshape,k.shape,Div.shape,dx.shape,LY.shape)   
+            #print(a.shape,LX.shape)                    
+            dx[0:lenx:3] = m*Y/np.prod(Div) -n*X -m*LY
+            dx[1:lenx:3] = r*X - p*Y/np.prod(Div) - XZ +np.dot(L,XZ) - r*np.dot(L,X)+(p*LY)-np.dot(L,Y)
+            dx[2:lenx:3] = X*Y - k*Z -np.dot(L,XY)
+        
+        return dx
+
+    def convert_adjacency(self,A,Type='DiGraph'):
+        """To convert an adacency matrix to a networkx graph and store the graph
+        internally
+        
+        Inputs: A - (n x n) Adjacency matrix in numpy array form. Note must be acceptable 
+                    form for networkx to convert to a graph
+                Type - either 'Graph' or 'DiGraph' depending on the type of graph
+        
+        Outputs: 
+                graph - The networkx graph. 
+        """
+        
+        if Type == 'DiGraph':
+            self.graph = nx.DiGraph(A)
+        
+        elif Type == 'Graph':
+            self.graph = nx.Graph(A)
+        
+        else:
+            raise ValueError("Only Type = 'DiGraph' or Type = 'Graph' is allowed")
+        
+        return self.graph
+
+
+    def convert_graph_to_laplacian(self,G):
+        A = nx.adjacency_matrix(G).todense()
+        L = self.get_Laplacian(A)
+        return L             
+
+    def get_Laplacian(self,A,return_eigvals=False):
+        L = np.matrix(np.zeros((A.shape[0],A.shape[0])))
+        np.fill_diagonal(L,np.sum(A,1))
+        L = L-A
+        if not return_eigvals:
+            return L
+        else:
+            E = np.linalg.eigvals(L)
+            return L,E
+    
+    
+    def generate_initial_condition(self,lenx0,method='random',init_cond_type='normal',init_cond_params=[0,1],init_cond_offset=0,p_norm=2,scale=1):
+        """Method for generating initial conditions.
+            
+            Inputs: lenx0 - the size of the initial condition vector
+                    method - the method for generating initial conditions. 'random' gives random ic's, normalized gives normalized ic's 
+                    init_cond_type - the type of random numbers to draw from, for example to draw from a normal distribution 'normal'
+                    init_cond_params - the parameters for the init_cond_type distribution. Must be an iterable
+                    init_cond_offset - how much to offset the initial condition by. 
+                    p_norm - if method is 'normalized', the value of the p_norm to normalize by
+                    scale - if method is 'normalized' this will scale the initial condition to be of a certain size.
+                    
+            Outputs:
+                    x0 - the initial condition.
+        """
+        
+        if init_cond_type =='normal':
+            x0 = np.random.normal(init_cond_params[0],init_cond_params[1],lenx0)+init_cond_offset
+        
+        elif init_cond_type =='uniform':
+            x0 = np.random.uniform(init_cond_params[0],init_cond_params[1],lenx0)+init_cond_offset
+        
+        elif init_cond_type == 'laplace':
+            x0 = np.random.uniform(init_cond_params[0],init_cond_params[1],lenx0)+init_cond_offset
+        
+        elif init_cond_type == 'exponential':
+            x0 = np.random.exponential(init_cond_params[0],lenx0)+init_cond_offset
+        
+        elif init_cond_type == 'rayleigh':
+            x0 = np.random.exponential(init_cond_params[0],lenx0)+init_cond_offset
+        
+        elif init_cond_type == 'beta':
+            x0 = np.random.beta(init_cond_params[0],init_cond_params[1],lenx0)+init_cond_offset
+        
+        elif init_cond_type == 'gamma':
+            x0 = np.random.beta(init_cond_params[0],init_cond_params[1],lenx0)+init_cond_offset             
+        
+        elif init_cond_type == 'gumbel':
+            x0 = np.random.gumbel(init_cond_params[0],init_cond_params[1],lenx0)+init_cond_offset
+
+        elif init_cond_type == 'chisquare':
+            x0 = np.random.chisquare(init_cond_params[0],lenx0)+init_cond_offset
+
+        elif init_cond_type == 'logistic':
+            x0 = np.random.logistic(init_cond_params[0],init_cond_params[1],lenx0)+init_cond_offset
+  
+        elif init_cond_type == 'lognormal':
+            x0 = np.random.lognormal(init_cond_params[0],init_cond_params[1],lenx0)+init_cond_offset                
+        
+        elif init_cond_type == 'pareto':
+            x0 = np.random.pareto(init_cond_params[0],lenx0)+init_cond_offset                
+        
+        elif init_cond_type == 'f':
+            x0 = np.random.f(init_cond_params[0],init_cond_params[1],lenx0)+init_cond_offset                
+        
+        elif init_cond_type == 'vonmises':
+            x0 = np.random.vonmises(init_cond_params[0],init_cond_params[1],lenx0)+init_cond_offset               
+        
+        elif init_cond_type == 'wald':
+            x0 = np.random.wald(init_cond_params[0],init_cond_params[1],lenx0)+init_cond_offset                
+
+        elif init_cond_type == 'weibull':
+            x0 = np.random.beta(init_cond_params[0],init_cond_params[1],lenx0)+init_cond_offset
+
+        elif init_cond_type == 'zipf':
+            x0 = np.random.beta(init_cond_params[0],init_cond_params[1],lenx0)+init_cond_offset
+        
+        else:
+            raise ValueError("This init_cond_type is not implemented see docs for types which are currently implemented")  
+        
+        if method=='normalized':
+            x0 = (x0/np.linalg.norm(x0,p_norm))*scale
+        
+        elif method =='random':
+            do_nothing =1
+        
+        else:
+            raise ValueError("This method for initial conditions is not allowed. See docs for allowable methods.")
+        
+        return x0
+                    
+    
+    def continuous_time_nonlinear_dynamics(self,G=None,L=None,tmax=100,timestep=0.1,method='random',init_cond_type='normal',init_cond=None,init_cond_params=[0,1],init_cond_offset=0,p_norm=2,scale=1,dynamics_type='Mondal',dynamics_params=[10,9,0,28,1,5/3],coupling_strength=1):
+        """Generate continuous time Laplacian (i.e. diffusive) type non-linear dynamics
+        Inputs: 
+               G - a networkx graph, if set to None then the internally stored graph will be used
+               L - the graph Laplacian, note this will be ignored if G is not None
+               tmax - the max value to integrate to
+               timestep - the integration time steps
+               method - the method for drawing initial conditions. See docs for more information
+               init_cond_type - the type of random initial conditions (can be 'normal' or 'uniform' for instance, see docs for available types)
+               init_cond - you can specify the initial condition here, if this is specified then init_cond_type will be ignored, if this is None then the initial condition will be generated according to init_cond_type
+               init_cond_parameters - a list of the parameters for the distribution type. For instance if init_cond_type = 'normal' then two parameters should be specified, the mean and the variance
+               init_cond_offset - how much to offset the initial condition by, added to each entry of the initial condition
+               p_norm - the value of p in the p-norm if method = 'normalized'
+               scale - how much to scale the initial condition by if method = 'normalized'
+               dynamics_type - the type of dynamics to use, for instance 'Rossler' will give Rossler type dynamics, see docs for allowable dynamics types
+               dynamics_params - a list of the parameters for the dynamics type, for instance 'Rossler' has 3 parameters to specify
+               coupling_strength - the coupling strength
+        Outputs: 
+                sol - the solution after integration
+                t   - the vector of integration time points
+               
+        """        
+        if G is None:
+            if self.graph is not None:
+                G = deepcopy(self.graph)
+            elif L is not None:
+                do_nothing = 1
+            else:
+                raise ValueError("No graph to perform dynamics on...")
+        else:
+            self.graph = G
+        
+        if G is not None:
+            L = self.convert_graph_to_laplacian(G)
+        n = len(L)
+        t = np.arange(0,tmax,step=timestep)
+        
+
+        
+        if dynamics_type =='Mondal':
+            lenx0 = 3*n
+            if init_cond is None:
+                self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+            
+            else:
+                self.init_cond = init_cond
+            
+            x0 = self.init_cond
+            sol = odeint(self.mondal_scm,x0,t,args=(L,dynamics_params))           
+
+        
+        else:
+            raise ValueError("Dynamics must be of allowed type, see docs for allowed types")
+        
+        return sol,t
 
 class laplacian_dynamics:
     
@@ -78,15 +376,32 @@ class laplacian_dynamics:
         return np.array(dx-np.dot(LH,x)).flatten()
         
     def lorenz(self,x,t,LH,params):
-        a,b,c = params
-        lenx = len(x)
-        dx = deepcopy(x)
-        X = x[0:lenx:3]
-        Y = x[1:lenx:3]
-        Z = x[2:lenx:3]
-        dx[0:lenx:3] = a*(Y-X)
-        dx[1:lenx:3] = X*(b-Z)-Y
-        dx[2:lenx:3] = X*Y-c*Z
+        """Suggested params a =10, b = 28, c = 8/3"""
+        if len(params) == 3:
+            a,b,c = params
+            lenx = len(x)
+            dx = deepcopy(x)
+            X = x[0:lenx:3]
+            Y = x[1:lenx:3]
+            Z = x[2:lenx:3]
+            dx[0:lenx:3] = a*(Y-X)
+            dx[1:lenx:3] = X*(b-Z)-Y
+            dx[2:lenx:3] = X*Y-c*Z
+        
+        else:
+            lenparams = len(params)
+            a = params[0:lenparams:3]
+            b = params[1:lenparams:3]
+            c = params[2:lenparams:3]
+            lenx = len(x)
+            dx = deepcopy(x)            
+            X = x[0:lenx:3]
+            Y = x[1:lenx:3]
+            Z = x[2:lenx:3]
+            dx[0:lenx:3] = a*(Y-X)
+            dx[1:lenx:3] = X*(b-Z)-Y
+            dx[2:lenx:3] = X*Y-c*Z            
+            
         return np.array(dx-np.dot(LH,x)).flatten()
 
     def brusselator(self,x,t,LH,params):
@@ -301,7 +616,7 @@ class laplacian_dynamics:
         return x0
                     
     
-    def continuous_time_nonlinear_dynamics(self,G=None,L=None,tmax=100,timestep=0.1,method='random',init_cond_type='normal',init_cond=None,init_cond_params=[0,1],init_cond_offset=0,p_norm=2,scale=1,dynamics_type='Rossler',dynamics_params=[0.2,0.2,7],coupling_matrix=None,coupling_strength=1):
+    def continuous_time_nonlinear_dynamics(self,G=None,L=None,tmax=100,timestep=0.1,method='random',init_cond_type='normal',init_cond=None,init_cond_params=[0,1],init_cond_offset=0,p_norm=2,scale=1,dynamics_type='Rossler',dynamics_params=[0.2,0.2,7],coupling_matrix=None,coupling_strength=1,dynamics_constant_params=True,dynamics_non_constant_params=None,changing_laplacian=False):
         """Generate continuous time Laplacian (i.e. diffusive) type non-linear dynamics
         Inputs: 
                G - a networkx graph, if set to None then the internally stored graph will be used
@@ -319,6 +634,11 @@ class laplacian_dynamics:
                dynamics_params - a list of the parameters for the dynamics type, for instance 'Rossler' has 3 parameters to specify
                coupling_matrix - if coupling_function_type is matrix then this is the matrix
                coupling_strength - the coupling strength
+               dynamics_constant_params - boolean. If True uses dynamics_params, if false uses dynamics_non_constant_params
+               dynamics_non_constant_params - A dictionary which contains the following entries, 
+                                              start_times - a list or array of starting times for parameter changes (first start time should be 0)
+                                              end_time - the last end time
+                                              parameters - a dictionary or  array of the parameters, should be the same length as start_times
         Outputs: 
                 sol - the solution after integration
                 t   - the vector of integration time points
@@ -337,116 +657,368 @@ class laplacian_dynamics:
         if G is not None:
             L = self.convert_graph_to_laplacian(G)
         n = len(L)
-        t = np.arange(0,tmax,step=timestep)
-        
-
-        
-        if dynamics_type =='Rossler':
-            lenx0 = 3*n
-            if init_cond is None:
-                self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+        if dynamics_constant_params:
+            t = np.arange(0,tmax,step=timestep)
             
-            else:
-                self.init_cond = init_cond
-            if coupling_matrix is None:
-                #assume coupling only through the x component
-                H = np.eye(3)
-                H[1,1] = 0
-                H[2,2] = 0
+    
+            
+            if dynamics_type =='Rossler':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
                 
-            else:
-                H = coupling_matrix
-            
-            x0 = self.init_cond
-            LH = coupling_strength*np.kron(L,H)
-            sol = odeint(self.rossler,x0,t,args=(LH,dynamics_params)) 
-            
-        elif dynamics_type=='Lorenz':
-            lenx0 = 3*n
-            if init_cond is None:
-                self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
-            else:
-                self.init_cond = init_cond  
+                else:
+                    self.init_cond = init_cond
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
                     
-            if coupling_matrix is None:
-                #assume coupling only through the x component
-                H = np.eye(3)
-                H[1,1] = 0
-                H[2,2] = 0
+                else:
+                    H = coupling_matrix
                 
-            else:
-                H = coupling_matrix
-            
-            x0 = self.init_cond
-            LH = coupling_strength*np.kron(L,H)
-            sol = odeint(self.lorenz,x0,t,args=(LH,dynamics_params))   
-            
-        elif dynamics_type=='VanDerPol':
-            lenx0 = 2*n
-            if init_cond is None:
-                self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
-            else:
-                self.init_cond = init_cond
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.rossler,x0,t,args=(LH,dynamics_params)) 
+                
+            elif dynamics_type=='Lorenz':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                else:
+                    self.init_cond = init_cond  
+                        
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
                     
-            if coupling_matrix is None:
-                #assume coupling only through the x component
-                H = np.eye(2)
-                H[1,1] = 0
+                else:
+                    H = coupling_matrix
                 
-            else:
-                H = coupling_matrix
-            
-            x0 = self.init_cond
-            LH = coupling_strength*np.kron(L,H)
-            sol = odeint(self.vanderpol,x0,t,args=(LH,dynamics_params)) 
-            
-        elif dynamics_type=='Wienbridge':
-            lenx0 = 2*n
-            if init_cond is None:
-                self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
-            else:
-                self.init_cond = init_cond
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.lorenz,x0,t,args=(LH,dynamics_params))   
+                
+            elif dynamics_type=='VanDerPol':
+                lenx0 = 2*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                else:
+                    self.init_cond = init_cond
+                        
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(2)
+                    H[1,1] = 0
                     
-            if coupling_matrix is None:
-                #assume coupling only through the x component
-                H = np.eye(2)
-                H[1,1] = 0
+                else:
+                    H = coupling_matrix
                 
-            else:
-                H = coupling_matrix
-            
-            x0 = self.init_cond
-            LH = coupling_strength*np.kron(L,H)
-            sol = odeint(self.wienbridge,x0,t,args=(LH,dynamics_params))            
-
-        elif dynamics_type=='Brusselator':
-            lenx0 = 2*n
-            if init_cond is None:
-                self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
-            else:
-                self.init_cond = init_cond
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.vanderpol,x0,t,args=(LH,dynamics_params)) 
+                
+            elif dynamics_type=='Wienbridge':
+                lenx0 = 2*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                else:
+                    self.init_cond = init_cond
+                        
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(2)
+                    H[1,1] = 0
                     
-            if coupling_matrix is None:
-                #assume coupling only through the x component
-                H = np.eye(2)
-                H[1,1] = 0
+                else:
+                    H = coupling_matrix
                 
-            else:
-                H = coupling_matrix
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.wienbridge,x0,t,args=(LH,dynamics_params))            
+    
+            elif dynamics_type=='Brusselator':
+                lenx0 = 2*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                else:
+                    self.init_cond = init_cond
+                        
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(2)
+                    H[1,1] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.brusselator,x0,t,args=(LH,dynamics_params))            
+     
+    
             
-            x0 = self.init_cond
-            LH = coupling_strength*np.kron(L,H)
-            sol = odeint(self.brusselator,x0,t,args=(LH,dynamics_params))            
- 
-
-        
+            else:
+                raise ValueError("Dynamics must be of allowed type, see docs for allowed types")
         else:
-            raise ValueError("Dynamics must be of allowed type, see docs for allowed types")
+            
+            if dynamics_type =='Rossler':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                
+                else:
+                    self.init_cond = init_cond
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                
+                if changing_laplacian:
+                    Laplacians = dynamics_non_constant_params['Laplacians'] #############################################################
+                else:
+                    LH = coupling_strength*np.kron(L,H)                
+                start_times = dynamics_non_constant_params['start_times']
+                end_time = dynamics_non_constant_params['end_time']
+                param_values = dynamics_non_constant_params['parameters']
+                for integration_times in range(len(start_times)):
+                    dynamics_params = param_values[integration_times]
+                    if integration_times<len(start_times)-1:
+                        tk=np.arange(start_times[integration_times],start_times[integration_times+1],step=timestep)
+                    else:
+                        tk=np.arange(start_times[integration_times],end_time,step=timestep)
+                        
+                    if changing_laplacian:
+                        L = Laplacians[integration_times]
+                        LH = coupling_strength*np.kron(L,H)
+                        
+                    if integration_times==0:
+                        sol = odeint(self.rossler,x0,tk,args=(LH,dynamics_params))
+                        t = tk
+                    
+                    else:
+                        x0 = sol[-1,:]
+                        temp_sol = odeint(self.rossler,x0,tk,args=(LH,dynamics_params))
+                        sol = np.vstack([sol,temp_sol])
+                        t = np.append(t,tk)
+                    
+                
+            elif dynamics_type=='Lorenz':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                else:
+                    self.init_cond = init_cond  
+                        
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                #LH = coupling_strength*np.kron(L,H)
+                start_times = dynamics_non_constant_params['start_times']
+                end_time = dynamics_non_constant_params['end_time']
+                param_values = dynamics_non_constant_params['parameters']
+                if changing_laplacian:
+                    Laplacians = dynamics_non_constant_params['Laplacians'] #############################################################
+                else:
+                    LH = coupling_strength*np.kron(L,H)
+                
+                for integration_times in range(len(start_times)):
+                    dynamics_params = param_values[integration_times]
+                    print(dynamics_params)
+                    if integration_times<len(start_times)-1:
+                        tk=np.arange(start_times[integration_times],start_times[integration_times+1],step=timestep)
+                    else:
+                        tk=np.arange(start_times[integration_times],end_time,step=timestep)
+                        
+                    if changing_laplacian:
+                        L = Laplacians[integration_times]
+                        LH = coupling_strength*np.kron(L,H)
+                    if integration_times==0:
+                        sol = odeint(self.lorenz,x0,tk,args=(LH,dynamics_params))
+                        t = tk
+                    
+                    else:
+                        x0 = sol[-1,:]
+                        
+                        temp_sol = odeint(self.lorenz,x0,tk,args=(LH,dynamics_params))
+                        
+                        sol = np.vstack([sol,temp_sol])
+                        t = np.append(t,tk)
+                    
+                
+            elif dynamics_type=='VanDerPol':
+                lenx0 = 2*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                else:
+                    self.init_cond = init_cond
+                        
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(2)
+                    H[1,1] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                
+                if changing_laplacian:
+                    Laplacians = dynamics_non_constant_params['Laplacians'] #############################################################
+                else:
+                    LH = coupling_strength*np.kron(L,H)    
+                    
+                start_times = dynamics_non_constant_params['start_times']
+                end_time = dynamics_non_constant_params['end_time']
+                param_values = dynamics_non_constant_params['parameters']
+                
+                for integration_times in range(len(start_times)):
+                    dynamics_params = param_values[integration_times]
+                    print(dynamics_params)
+                    if integration_times<len(start_times)-1:
+                        tk=np.arange(start_times[integration_times],start_times[integration_times+1],step=timestep)
+                    else:
+                        tk=np.arange(start_times[integration_times],end_time,step=timestep)
+                        
+                    if changing_laplacian:
+                        L = Laplacians[integration_times]
+                        LH = coupling_strength*np.kron(L,H)                        
+                        
+                    if integration_times==0:
+                        sol = odeint(self.vanderpol,x0,tk,args=(LH,dynamics_params))
+                        t = tk
+                    
+                    else:
+                        x0 = sol[-1,:]
+                        
+                        temp_sol = odeint(self.vanderpol,x0,tk,args=(LH,dynamics_params))
+                        
+                        sol = np.vstack([sol,temp_sol])
+                        t = np.append(t,tk)
+                                    
+                
+            elif dynamics_type=='Wienbridge':
+                lenx0 = 2*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                else:
+                    self.init_cond = init_cond
+                        
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(2)
+                    H[1,1] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                
+                if changing_laplacian:
+                    Laplacians = dynamics_non_constant_params['Laplacians'] #############################################################
+                else:
+                    LH = coupling_strength*np.kron(L,H)                   
+                start_times = dynamics_non_constant_params['start_times']
+                end_time = dynamics_non_constant_params['end_time']
+                param_values = dynamics_non_constant_params['parameters']
+                
+                for integration_times in range(len(start_times)):
+                    dynamics_params = param_values[integration_times]
+                    print(dynamics_params)
+                    if integration_times<len(start_times)-1:
+                        tk=np.arange(start_times[integration_times],start_times[integration_times+1],step=timestep)
+                    else:
+                        tk=np.arange(start_times[integration_times],end_time,step=timestep)
+                        
+                    if changing_laplacian:
+                        L = Laplacians[integration_times]
+                        LH = coupling_strength*np.kron(L,H)                        
+                        
+                    if integration_times==0:
+                        sol = odeint(self.wienbridge,x0,tk,args=(LH,dynamics_params))
+                        t = tk
+                    
+                    else:
+                        x0 = sol[-1,:]
+                        
+                        temp_sol = odeint(self.wienbridge,x0,tk,args=(LH,dynamics_params))
+                        
+                        sol = np.vstack([sol,temp_sol])
+                        t = np.append(t,tk)
+                                    
+    
+            elif dynamics_type=='Brusselator':
+                lenx0 = 2*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                else:
+                    self.init_cond = init_cond
+                        
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(2)
+                    H[1,1] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                
+                if changing_laplacian:
+                    Laplacians = dynamics_non_constant_params['Laplacians'] #############################################################
+                else:
+                    LH = coupling_strength*np.kron(L,H)                   
+                start_times = dynamics_non_constant_params['start_times']
+                end_time = dynamics_non_constant_params['end_time']
+                param_values = dynamics_non_constant_params['parameters']
+                
+                for integration_times in range(len(start_times)):
+                    dynamics_params = param_values[integration_times]
+                    #print(dynamics_params)
+                    if integration_times<len(start_times)-1:
+                        tk=np.arange(start_times[integration_times],start_times[integration_times+1],step=timestep)
+                    else:
+                        tk=np.arange(start_times[integration_times],end_time,step=timestep)
+                        
+                    if changing_laplacian:
+                        L = Laplacians[integration_times]
+                        LH = coupling_strength*np.kron(L,H)                           
+                        
+                    if integration_times==0:
+                        sol = odeint(self.brusselator,x0,tk,args=(LH,dynamics_params))
+                        t = tk
+                    
+                    else:
+                        x0 = sol[-1,:]
+                        
+                        temp_sol = odeint(self.brusselator,x0,tk,args=(LH,dynamics_params))
+                        
+                        sol = np.vstack([sol,temp_sol])
+                        t = np.append(t,tk)
+                                    
+            else:
+                raise ValueError("Dynamics must be of allowed type, see docs for allowed types")                
         
         return sol,t
     
     
-    def nonlinear_find_time_to_sync(self,x,t,d,Tol=1e-6):
+    def nonlinear_find_time_to_sync(self,x,t,d,criterion='maxpdist',whichstd='all',Tol=1e-6,TolMax =1e6):
         """For finding the time to synchronization.
             
            Inputs:
@@ -459,19 +1031,38 @@ class laplacian_dynamics:
                 
                 d - the dimension of an isolated oscillator.
                 
+                criterion - the criterion for synchronization. Example- 'maxpdist' maximum pairwise distance between oscillators
+                            see docs for more information on the available criterions
+                
+                whichstd - if criterion is 'std' then must specify which dimension to perform std on. Must either be an iterable or the term 'all', which means average over all dimensions
+                           since the first dimension is usually viewd as the 'x-dimension' we could say std along the x-dimension would be whichstd = [0]. Or if we want to average over the
+                           first and third dimensions whichstd = [0,2] and so on.
+                
                 Tol - The tolerance for stating the synchronization has been 
                       attained. If this tolerance is never reached then sync_time = inf
+                
+                TolMax - The maximum tolerance before declaring that the system is heading to infinity.
          
            Outputs:
                    sync_time - the time to synchronization, may be inf if sync is never 
                                reached in the time series...
         """
         sync_time = np.inf
+        
+        
         if d == 1:
             for i in range(x.shape[0]):
-                dist = np.max(pdist(x[i,:]))
+                if criterion == 'maxpdist':
+                    dist = np.max(pdist(x[i,:]))
+                elif criterion == 'std':
+                    dist = np.std(x[i,:])
+                else:
+                    raise ValueError("This criterion is not currently available. See docs for available criterion")
                 if dist<Tol:
                     sync_time = t[i]
+                    break
+                
+                if dist>TolMax:
                     break
         
         elif d>1:
@@ -481,11 +1072,29 @@ class laplacian_dynamics:
                 concat = x[i,0:Dim:d].reshape(-1,1)
                 for j in range(1,d):
                     concat = np.concatenate((concat,x[i,j:Dim:d].reshape(-1,1)),axis=1)
-                dist = np.max(pdist(concat))
+                
+                if criterion =='maxpdist':
+                    dist = np.max(pdist(concat))
+                elif criterion == 'std':
+                    if whichstd =='all':
+                        mnvalue = np.zeros(d)
+                        for k in range(d):
+                            mnvalue[k] = np.std(concat[:,k])
+                        dist = np.mean(mnvalue)
+                    else:
+                        mnvalue = np.zeros(len(whichstd))
+                        for k in range(len(whichstd)):
+                            mnvalue[k] = np.std(concat[:,whichstd[k]])
+                        
+                        dist = np.mean(mnvalue)
+                            
                 #print(dist)
                 if dist<Tol:
                     sync_time = t[i]
                     break 
+                
+                if dist>TolMax:
+                    break
         
         else:
             raise ValueError("Dimension (d) of oscillators cannot be negative")
@@ -493,24 +1102,30 @@ class laplacian_dynamics:
          
         return sync_time
             
-    def average_ctnd(self,G=None,L=None,tmax=100,timestep=0.1,init_cond_type='normal',init_cond=None,init_cond_params=[0,1],init_cond_offset=0,dynamics_type='Rossler',dynamics_params=[0.2,0.2,7],coupling_matrix=None,coupling_strength=1,num_average=100,d=3,Tol=1e-6):
+    def average_ctnd(self,G=None,L=None,tmax=100,timestep=0.1,method='random',init_cond_type='normal',init_cond=None,init_cond_params=[0,1],init_cond_offset=0,p_norm=2,scale=1,dynamics_type='Rossler',dynamics_params=[0.2,0.2,7],coupling_matrix=None,coupling_strength=1,num_average=100,d=3,criterion='maxpdist',whichstd='all',Tol=1e-6,TolMax=1e6):
         """Generate continuous time Laplacian (i.e. diffusive) type non-linear dynamics and find the average time to synchronization.
         Inputs: 
                G - a networkx graph, if set to None then the internally stored graph will be used
                L - the graph Laplacian, note this will be ignored if G is not None
                tmax - the max value to integrate to
                timestep - the integration time steps
+               method - the method for drawing initial conditions. See docs for more information               
                init_cond_type - the type of random initial conditions (can be 'normal' or 'uniform' for instance, see docs for available types)
                init_cond - you can specify the initial condition here, if this is specified then init_cond_type will be ignored, if this is None then the initial condition will be generated according to init_cond_type
                init_cond_parameters - a list of the parameters for the distribution type. For instance if init_cond_type = 'normal' then two parameters should be specified, the mean and the variance
                init_cond_offset - how much to offset the initial condition by, added to each entry of the initial condition
+               p_norm - the value of p in the p-norm if method = 'normalized'
+               scale - how much to scale the initial condition by if method = 'normalized'               
                dynamics_type - the type of dynamics to use, for instance 'Rossler' will give Rossler type dynamics, see docs for allowable dynamics types
                dynamics_params - a list of the parameters for the dynamics type, for instance 'Rossler' has 3 parameters to specify
                coupling_matrix - if coupling_function_type is matrix then this is the matrix
                coupling_strength - the coupling strength
                num_average - the number of trials to average over
                d - the number of dimensions of the oscillator used
+               criterion - the synchronization criterion to use, default is maxpdist which takes the maximum pairwise distance between the d dimensional oscillators
+               whichstd - if criterion is set to 'std' then which dimension to compute the standard deviation along (must be an iterable) or if multiple dimensions are specified then it will be averaged along them.
                Tol - the synchronization tolerance
+               TolMax - the maximum tolerance before declaring the dynamics is heading to infinity (not synchronizing...)
         Outputs: 
                 Mean - the mean time to synchronization, excluding the times it failed to synchronize
                 numfail   - the number of times it failed to synchronize
@@ -519,8 +1134,8 @@ class laplacian_dynamics:
         av_list = []
         numfail = 0
         for i in tqdm(range(num_average)):
-            x,t = self.continuous_time_nonlinear_dynamics(G,L,tmax,timestep,init_cond_type,init_cond,init_cond_params,init_cond_offset,dynamics_type,dynamics_params,coupling_matrix,coupling_strength)
-            sync_time = self.nonlinear_find_time_to_sync(x,t,d,Tol)
+            x,t = self.continuous_time_nonlinear_dynamics(G,L,tmax,timestep,method,init_cond_type,init_cond,init_cond_params,init_cond_offset,p_norm,scale,dynamics_type,dynamics_params,coupling_matrix,coupling_strength)
+            sync_time = self.nonlinear_find_time_to_sync(x,t,d,criterion,whichstd,Tol,TolMax)
             if sync_time !=np.inf:
                 av_list.append(sync_time)
             
@@ -758,6 +1373,89 @@ class divergences:
         Hy = -np.sum(Py*np.log(Py))
         Hxy = -np.sum(Pxy*np.log(Pxy))
         return Hx+Hy-Hxy
+
+
+    def relabel_graph(self,G):
+        self.Graph = G
+        n = len(G)
+        Graph = deepcopy(self.Graph)
+        NodeLabels = np.array(list(Graph.nodes))
+        Map = dict(zip(NodeLabels,np.arange(n)))
+        self.Graph_no_labels = nx.relabel_nodes(Graph,Map)
+
+    def gen_info_betweenness_graph(self,G,TS,BetweennessCentralityType='both',numbins=20,usehistogrammethod=False):
+        """Input: G is the graph.
+                  TS is the timeseries"""
+        
+            
+        self.relabel_graph(G)
+        Edges = list(self.Graph_no_labels.edges(data=True))
+        for i in range(len(Edges)):
+            Edge = Edges[i]
+            X = TS[:,Edge[0]]
+            Y = TS[:,Edge[1]]
+            if len(list(self.Graph_no_labels[Edge[0]]))>1:
+                Arr = np.array(list(self.Graph_no_labels[Edge[0]]))
+                Arr = np.setdiff1d(Arr,Edge[1])
+                Z = TS[:,Arr]
+                if not usehistogrammethod:
+                    MI = self.compute_cmi_binning(X, Y, Z,numbins=numbins)
+                
+                else:
+                    MI = self.compute_cmi_histogram(X,Y,Z)
+                print(MI)
+            
+            else:
+                if not usehistogrammethod:
+                    MI = self.compute_cmi_binning(X,Y,numbins=numbins)
+                
+                else:
+                    MI = self.compute_cmi_histogram(X,Y)
+                print(MI)
+            
+        
+            try:
+                Val = 1/MI
+                if Val == np.inf:
+                    Val = 1e200
+                    self.Graph_no_labels[Edge[0]][Edge[1]]['conditional_mutual_information'] = Val
+                    
+                else:
+                    self.Graph_no_labels[Edge[0]][Edge[1]]['conditional_mutual_information'] = Val
+                    
+            except ZeroDivisionError:
+                self.Graph_no_labels[Edge[0]][Edge[1]]['conditional_mutual_information'] = 1e200
+                
+        
+        if BetweennessCentralityType == 'node':
+            MI_Betweenness = nx.betweenness_centrality(self.Graph_no_labels,weight='conditional_mutual_information')#nx.edge_betweenness_centrality(G2,weight='conditional_mutual_information')
+            MI_array = np.array(list(MI_Betweenness.items()),dtype='object')
+            SortedIndices = (-MI_array[:,1]).argsort()
+            self.node_SortedMI_arr = deepcopy(MI_array[SortedIndices])
+            return self.Graph_no_labels, self.node_SortedMI_arr
+        
+        if BetweennessCentralityType == 'edge':
+            MI_Betweenness = nx.edge_betweenness_centrality(self.Graph_no_labels,weight='conditional_mutual_information')
+            MI_array = np.array(list(MI_Betweenness.items()),dtype='object')
+            SortedIndices = (-MI_array[:,1]).argsort()
+            self.edge_SortedMI_arr = deepcopy(MI_array[SortedIndices])                
+            return self.Graph_no_labels, self.edge_SortedMI_arr
+
+        if BetweennessCentralityType == 'both':
+            MI_Betweenness = nx.betweenness_centrality(self.Graph_no_labels,weight='conditional_mutual_information')#nx.edge_betweenness_centrality(G2,weight='conditional_mutual_information')
+            MI_array = np.array(list(MI_Betweenness.items()),dtype='object')
+            SortedIndices = (-MI_array[:,1]).argsort()
+            self.node_SortedMI_arr = deepcopy(MI_array[SortedIndices])  
+            
+            MI_Betweenness = nx.edge_betweenness_centrality(self.Graph_no_labels,weight='conditional_mutual_information')
+            MI_array = np.array(list(MI_Betweenness.items()),dtype='object')
+            SortedIndices = (-MI_array[:,1]).argsort()
+            self.edge_SortedMI_arr = deepcopy(MI_array[SortedIndices])      
+        
+            return self.Graph_no_labels, self.node_SortedMI_arr, self.edge_SortedMI_arr        
+        
+
+    
     
     def compute_cmi_binning(self,x,y,z=None,Type='empirical',numbins=20,kernel='gaussian',bandwidth=None,bandwidth_comparison=None,bandwidth_xy=None):
         """For estimating the conditional mutual information using binning.
