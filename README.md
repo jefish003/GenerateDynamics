@@ -127,6 +127,8 @@ Currently available ISOLATED dynamics types:
 
 'Lorenz' - The Lorenz system $dx/dt = \sigma(y-z)$, $dy/dt = x(\rho -z) -y$, $dz/dt = xy-\beta z$. The parameters should be listed as $[\sigma,\rho,\beta]$. One suggested example set $[10,28,8/3]$
 
+'Aizawa' - The Aizawa system $dx/dt = (z-b)x-dy$, $dy/dt = dx+(z-b)y$, $dz/dt = c+az-z^3/3 -(x^2+y^2)(1+ez)+fz$. The parameters should be listed as $[a,b,c,d,e,f]$. One suggested example set $[0.95,0.7,0.6,3.5,0.25,0.1]$
+
 'VanDerPol' - The VanDer Pol system, $dx/dt = y, dy/dt = \mu(1-x^2)y-x$. The parameters should be listed as $[\mu]$. Suggested example value is $[1.5]$.
 
 'Brusselator' - The Brusselator system, $dx/dt = 1-(a+1)x+bx^2y, dy/dt = ax-bx^2y$. The parameters should be listed as $[a,b]$. Suggested example of values $[2.5,1.12]$.
