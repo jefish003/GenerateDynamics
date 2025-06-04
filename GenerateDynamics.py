@@ -374,6 +374,198 @@ class laplacian_dynamics:
         dx[1:lenx:3] = X+a*Y
         dx[2:lenx:3] = b+Z*(X-c)
         return np.array(dx-np.dot(LH,x)).flatten()
+       
+    def perturbed_rossler(self,x,t,LH,params):
+        a,b,c,d = params
+        lenx = len(x)
+        dx = deepcopy(x)
+        X = x[0:lenx:3]
+        Y = x[1:lenx:3]
+        Z = x[2:lenx:3]
+        dx[0:lenx:3] = -Y-Z
+        dx[1:lenx:3] = X+a*Y
+        dx[2:lenx:3] = b+Z*(X-c)-d*Y
+        return np.array(dx-np.dot(LH,x)).flatten()   
+    
+    def aizawa(self,x,t,LH,params):
+        """See https://sequelaencollection.home.blog/3d-chaotic-attractors/
+           Suggested params a = 0.95, b = 0.7, c = 0.6, d = 3.5, e = 0.25, f = 0.1
+        """
+        a,b,c,d,e,f = params
+        lenx = len(x)
+        dx = deepcopy(x)
+        X = x[0:lenx:3]
+        Y = x[1:lenx:3]
+        Z = x[2:lenx:3]
+        dx[0:lenx:3] = (Z-b)*X-d*Y
+        dx[1:lenx:3] = d*X+(Z-b)*Y
+        dx[2:lenx:3] = c+a*Z-Z**3/3-X**2+f*Z*X**3
+        return np.array(dx-np.dot(LH,x)).flatten()    
+    
+    def chen_lee(self,x,t,LH,params):
+        """See https://sequelaencollection.home.blog/3d-chaotic-attractors/
+           Suggested params a = 5, b = -10, c = -0.38
+        """
+        a,b,c = params
+        lenx = len(x)
+        dx = deepcopy(x)
+        X = x[0:lenx:3]
+        Y = x[1:lenx:3]
+        Z = x[2:lenx:3]
+        dx[0:lenx:3] = a*X-Y*Z
+        dx[1:lenx:3] = b*Y+X*Z
+        dx[2:lenx:3] = c*Z+(X*Y)/3
+        return np.array(dx-np.dot(LH,x)).flatten()    
+
+    def arneodo(self,x,t,LH,params):
+        """See https://sequelaencollection.home.blog/3d-chaotic-attractors/
+           Suggested params a = -5.5, b = 3.5, c = -1
+        """
+        a,b,c = params
+        lenx = len(x)
+        dx = deepcopy(x)
+        X = x[0:lenx:3]
+        Y = x[1:lenx:3]
+        Z = x[2:lenx:3]
+        dx[0:lenx:3] = Y
+        dx[1:lenx:3] = Z
+        dx[2:lenx:3] = -a*X-b*Y-Z+c*X**3
+        return np.array(dx-np.dot(LH,x)).flatten()  
+
+    def sprottb(self,x,t,LH,params):
+        """See https://sequelaencollection.home.blog/3d-chaotic-attractors/
+           Suggested params a = 0.4 b = 1.2, c = 1
+        """
+        a,b,c = params
+        lenx = len(x)
+        dx = deepcopy(x)
+        X = x[0:lenx:3]
+        Y = x[1:lenx:3]
+        Z = x[2:lenx:3]
+        dx[0:lenx:3] = a*Y*Z
+        dx[1:lenx:3] = X-b*Y
+        dx[2:lenx:3] = c-X*Y
+        return np.array(dx-np.dot(LH,x)).flatten()  
+
+    def sprott_linzf(self,x,t,LH,params):
+        """See https://sequelaencollection.home.blog/3d-chaotic-attractors/
+           Suggested params a = 0.5
+        """
+        a = params
+        lenx = len(x)
+        dx = deepcopy(x)
+        X = x[0:lenx:3]
+        Y = x[1:lenx:3]
+        Z = x[2:lenx:3]
+        dx[0:lenx:3] = Y+Z
+        dx[1:lenx:3] = -X+a*Y
+        dx[2:lenx:3] = X**2-Z
+        return np.array(dx-np.dot(LH,x)).flatten() 
+
+    def dadras(self,x,t,LH,params):
+        """See https://sequelaencollection.home.blog/3d-chaotic-attractors/
+           Suggested params a = 3,b = 2.7, c = 1.7, d = 2, e = 9
+        """
+        a,b,c,d,e = params
+        lenx = len(x)
+        dx = deepcopy(x)
+        X = x[0:lenx:3]
+        Y = x[1:lenx:3]
+        Z = x[2:lenx:3]
+        dx[0:lenx:3] = Y-a*X+b*Y*Z
+        dx[1:lenx:3] = c*Y-X*Z+Z
+        dx[2:lenx:3] = d*X*Y-e*Z
+        return np.array(dx-np.dot(LH,x)).flatten()     
+
+    def halvorsen(self,x,t,LH,params):
+        """See https://sequelaencollection.home.blog/3d-chaotic-attractors/
+           Suggested params a = 1.4
+        """
+        a = params
+        lenx = len(x)
+        dx = deepcopy(x)
+        X = x[0:lenx:3]
+        Y = x[1:lenx:3]
+        Z = x[2:lenx:3]
+        dx[0:lenx:3] = -a*X-4*Y-4*Z-Y**2
+        dx[1:lenx:3] = -a*Y-4*Z-4*X-Z**2
+        dx[2:lenx:3] = -a*Z-4*X-4*Y-X**2
+        return np.array(dx-np.dot(LH,x)).flatten()    
+
+    def thomas(self,x,t,LH,params):
+        """See https://www.dynamicmath.xyz/strange-attractors/
+           Suggested params a = 0.208186
+        """
+        a = params
+        lenx = len(x)
+        dx = deepcopy(x)
+        X = x[0:lenx:3]
+        Y = x[1:lenx:3]
+        Z = x[2:lenx:3]
+        dx[0:lenx:3] = np.sin(Y)-a*X
+        dx[1:lenx:3] = np.sin(Z)-a*Y
+        dx[2:lenx:3] = np.sin(X)-a*Z
+        return np.array(dx-np.dot(LH,x)).flatten()          
+
+    def rabinovich_fabrikant(self,x,t,LH,params):
+        """See https://www.dynamicmath.xyz/strange-attractors/
+           Suggested params a = 0.14, b = 0.1
+        """
+        a,b = params
+        lenx = len(x)
+        dx = deepcopy(x)
+        X = x[0:lenx:3]
+        Y = x[1:lenx:3]
+        Z = x[2:lenx:3]
+        dx[0:lenx:3] = Y*(Z-1+X**2)+b*X
+        dx[1:lenx:3] = X*(3*Z+1-X**2)+b*Y
+        dx[2:lenx:3] = -2*Z*(a+X*Y)
+        return np.array(dx-np.dot(LH,x)).flatten() 
+    
+    def three_scroll(self,x,t,LH,params):
+        """See https://www.dynamicmath.xyz/strange-attractors/
+           Suggested params a = 32.48, b = 45.84, c = 1.18, d = 0.13, e = 0.57, f = 14.7
+        """
+        a,b,c,d,e,f = params
+        lenx = len(x)
+        dx = deepcopy(x)
+        X = x[0:lenx:3]
+        Y = x[1:lenx:3]
+        Z = x[2:lenx:3]
+        dx[0:lenx:3] = a*(Y-X)+d*X*Z
+        dx[1:lenx:3] = b*X-X*Z+f*Y
+        dx[2:lenx:3] = c*Z+X*Y-e*X**2
+        return np.array(dx-np.dot(LH,x)).flatten()  
+    
+    def four_wing(self,x,t,LH,params):
+        """See https://www.dynamicmath.xyz/strange-attractors/
+           Suggested params a = 0.2, b = 0.01, c =-0.4
+        """
+        a,b,c = params
+        lenx = len(x)
+        dx = deepcopy(x)
+        X = x[0:lenx:3]
+        Y = x[1:lenx:3]
+        Z = x[2:lenx:3]
+        dx[0:lenx:3] = a*X+Y*Z
+        dx[1:lenx:3] = b*X+c*Y-X*Z
+        dx[2:lenx:3] = -Z-X*Y
+        return np.array(dx-np.dot(LH,x)).flatten() 
+    
+    def perturbed_four_wing(self,x,t,LH,params):
+        """See https://www.dynamicmath.xyz/strange-attractors/
+           Suggested params a = 0.2, b = 0.01, c =-0.4, d = ?,e = ?, f =?, g=?
+        """
+        a,b,c,d,e,f,g,h,k,l = params
+        lenx = len(x)
+        dx = deepcopy(x)
+        X = x[0:lenx:3]
+        Y = x[1:lenx:3]
+        Z = x[2:lenx:3]
+        dx[0:lenx:3] = a*X+d*Y*Z+h
+        dx[1:lenx:3] = b*X+c*Y-e*X*Z+k
+        dx[2:lenx:3] = -f*Z-g*X*Y+l
+        return np.array(dx-np.dot(LH,x)).flatten()     
         
     def lorenz(self,x,t,LH,params):
         """Suggested params a =10, b = 28, c = 8/3"""
@@ -644,6 +836,7 @@ class laplacian_dynamics:
                 t   - the vector of integration time points
                
         """        
+        
         if G is None:
             if self.graph is not None:
                 G = deepcopy(self.graph)
@@ -661,7 +854,6 @@ class laplacian_dynamics:
             t = np.arange(0,tmax,step=timestep)
             
     
-            
             if dynamics_type =='Rossler':
                 lenx0 = 3*n
                 if init_cond is None:
@@ -681,6 +873,266 @@ class laplacian_dynamics:
                 x0 = self.init_cond
                 LH = coupling_strength*np.kron(L,H)
                 sol = odeint(self.rossler,x0,t,args=(LH,dynamics_params)) 
+                
+            elif dynamics_type =='Perturbed_Rossler':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                
+                else:
+                    self.init_cond = init_cond
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.perturbed_rossler,x0,t,args=(LH,dynamics_params)) 
+                
+            elif dynamics_type =='Aizawa':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                
+                else:
+                    self.init_cond = init_cond
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.aizawa,x0,t,args=(LH,dynamics_params))    
+                
+            elif dynamics_type =='Chen-Lee':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                
+                else:
+                    self.init_cond = init_cond
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.chen_lee,x0,t,args=(LH,dynamics_params))
+
+            elif dynamics_type =='Arneodo':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                
+                else:
+                    self.init_cond = init_cond
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.arneodo,x0,t,args=(LH,dynamics_params)) 
+
+            elif dynamics_type =='Sprott-B':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                
+                else:
+                    self.init_cond = init_cond
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.sprottb,x0,t,args=(LH,dynamics_params))
+
+            elif dynamics_type =='Sprott-Linz-F':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                
+                else:
+                    self.init_cond = init_cond
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.sprott_linzf,x0,t,args=(LH,dynamics_params))   
+
+            elif dynamics_type =='Dadras':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                
+                else:
+                    self.init_cond = init_cond
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.dadras,x0,t,args=(LH,dynamics_params))     
+
+            elif dynamics_type =='Halvorsen':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                
+                else:
+                    self.init_cond = init_cond
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.halvorsen,x0,t,args=(LH,dynamics_params))  
+
+            elif dynamics_type =='Thomas':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                
+                else:
+                    self.init_cond = init_cond
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.thomas,x0,t,args=(LH,dynamics_params))
+
+            elif dynamics_type =='Rabinovich-Fabrikant':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                
+                else:
+                    self.init_cond = init_cond
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.rabinovich_fabrikant,x0,t,args=(LH,dynamics_params))
+
+            elif dynamics_type =='Three-Scroll':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                
+                else:
+                    self.init_cond = init_cond
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.three_scroll,x0,t,args=(LH,dynamics_params))  
+
+            elif dynamics_type =='Four-Wing':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                
+                else:
+                    self.init_cond = init_cond
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.four_wing,x0,t,args=(LH,dynamics_params))  
+
+            elif dynamics_type =='Perturbed-Four-Wing':
+                lenx0 = 3*n
+                if init_cond is None:
+                    self.init_cond = self.generate_initial_condition(lenx0,method=method,init_cond_type=init_cond_type,init_cond_params=init_cond_params,init_cond_offset=init_cond_offset,p_norm=p_norm,scale=scale)
+                
+                else:
+                    self.init_cond = init_cond
+                if coupling_matrix is None:
+                    #assume coupling only through the x component
+                    H = np.eye(3)
+                    H[1,1] = 0
+                    H[2,2] = 0
+                    
+                else:
+                    H = coupling_matrix
+                
+                x0 = self.init_cond
+                LH = coupling_strength*np.kron(L,H)
+                sol = odeint(self.perturbed_four_wing,x0,t,args=(LH,dynamics_params))                 
                 
             elif dynamics_type=='Lorenz':
                 lenx0 = 3*n
