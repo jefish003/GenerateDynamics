@@ -129,6 +129,8 @@ Currently available ISOLATED dynamics types:
 
 'Aizawa' - The Aizawa system $dx/dt = (z-b)x-d\cdot y$, $dy/dt = d\cdot x+(z-b)y$, $dz/dt = c+az-z^3/3 -(x^2+y^2)(1+ez)+fz$. The parameters should be listed as $[a,b,c,d,e,f]$. One suggested example set $[0.95,0.7,0.6,3.5,0.25,0.1]$
 
+'Chen-Lee' - The Chen-Lee system (sometimes called the Chen system). $dx/dt = ax-yz$, $dy/dt =by+xz$, $dz/dt = cz+(xy/3)$. The parameters should be listed as $[a,b,c]$. One suggested example $[-5.5,3.5,-1]$.
+
 'VanDerPol' - The VanDer Pol system, $dx/dt = y, dy/dt = \mu(1-x^2)y-x$. The parameters should be listed as $[\mu]$. Suggested example value is $[1.5]$.
 
 'Brusselator' - The Brusselator system, $dx/dt = 1-(a+1)x+bx^2y, dy/dt = ax-bx^2y$. The parameters should be listed as $[a,b]$. Suggested example of values $[2.5,1.12]$.
