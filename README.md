@@ -82,7 +82,7 @@ The options for init_cond_type are as follows:
 'weibull' - the one parameter Weibull distribution. The parameter is the shape parameter.
 
 
-Beyond just linear dynamics, there is also an option for nonlinear dynamics on networks, in this case assuming identical isolated dynamics so the model for the function continuous_time_nonlinear_dynamics  is $dx_i/dt = f(x_i) + k/sum_i(A_{ij}h(x_i,x_j))$, where A is the adjacency matrix, and h is assumed to be a matrix that couples different components. 
+Beyond just linear dynamics, there is also an option for nonlinear dynamics on networks, in this case assuming identical isolated dynamics so the model for the function continuous_time_nonlinear_dynamics  is $dx_i/dt = f(x_i) + k\sum_i(A_{ij}h(x_i,x_j))$, where A is the adjacency matrix, and h is assumed to be a matrix that couples different components. 
 
 It can simply be called in the following manner, since all arguments have defaults.
 ```
