@@ -399,7 +399,7 @@ class laplacian_dynamics:
         Z = x[2:lenx:3]
         dx[0:lenx:3] = (Z-b)*X-d*Y
         dx[1:lenx:3] = d*X+(Z-b)*Y
-        dx[2:lenx:3] = c+a*Z-Z**3/3-X**2+f*Z*X**3
+        dx[2:lenx:3] = c+a*Z-Z**3/3-(X**2+Y**2)*(1+e*Z)+f*Z*X**3
         return np.array(dx-np.dot(LH,x)).flatten()    
     
     def chen_lee(self,x,t,LH,params):
@@ -451,7 +451,7 @@ class laplacian_dynamics:
         """See https://sequelaencollection.home.blog/3d-chaotic-attractors/
            Suggested params a = 0.5
         """
-        a = params
+        a = params[0]
         lenx = len(x)
         dx = deepcopy(x)
         X = x[0:lenx:3]
@@ -481,7 +481,7 @@ class laplacian_dynamics:
         """See https://sequelaencollection.home.blog/3d-chaotic-attractors/
            Suggested params a = 1.4
         """
-        a = params
+        a = params[0]
         lenx = len(x)
         dx = deepcopy(x)
         X = x[0:lenx:3]
@@ -496,7 +496,7 @@ class laplacian_dynamics:
         """See https://www.dynamicmath.xyz/strange-attractors/
            Suggested params a = 0.208186
         """
-        a = params
+        a = params[0]
         lenx = len(x)
         dx = deepcopy(x)
         X = x[0:lenx:3]
